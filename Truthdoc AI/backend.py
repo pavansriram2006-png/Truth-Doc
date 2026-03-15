@@ -1,5 +1,7 @@
 import os
 import re
+import shutil
+import tempfile
 from urllib.parse import urlparse
 from typing import List, Tuple
 
@@ -31,6 +33,17 @@ DEFAULT_TESSERACT = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 if os.path.exists(DEFAULT_TESSERACT):
     pytesseract.pytesseract.tesseract_cmd = DEFAULT_TESSERACT
 
+
+def ocr_available() -> bool:
+    """Return True only when Tesseract executable is available to pytesseract."""
+    try:
+        if os.path.exists(pytesseract.pytesseract.tesseract_cmd):
+            return True
+    except Exception:
+        pass
+
+    return shutil.which("tesseract") is not None
+
 app = FastAPI(title="TruthDoc AI", description="Smart Document Fraud Detection API")
 
 app.add_middleware(
@@ -49,17 +62,29 @@ app.add_middleware(
 
 def extract_text_from_image(file: UploadFile) -> str:
     try:
+        if not ocr_available():
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Image OCR is unavailable on this deployment because Tesseract is not installed. "
+                    "Use text-based PDF/DOCX, or deploy backend on a host with Tesseract installed."
+                ),
+            )
         image = Image.open(file.file)
         return pytesseract.image_to_string(image)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Image processing failed: {e}")
 
 
 def extract_text_from_pdf(file: UploadFile) -> str:
-    temp_path = f"temp_{file.filename}"
+    temp_path = None
     try:
-        with open(temp_path, "wb") as f:
-            f.write(file.file.read())
+        suffix = os.path.splitext(file.filename or "upload.pdf")[1] or ".pdf"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_file.write(file.file.read())
+            temp_path = temp_file.name
 
         # Try direct PDF text extraction first (no Poppler required).
         if PdfReader is not None:
@@ -68,7 +93,7 @@ def extract_text_from_pdf(file: UploadFile) -> str:
             if direct_text:
                 return direct_text
 
-        # Fallback to OCR using PyMuPDF rendering (does not require Poppler).
+        # Fallback to OCR using PyMuPDF rendering (requires Tesseract for OCR pass).
         if fitz is not None:
             doc = fitz.open(temp_path)
 
@@ -78,18 +103,21 @@ def extract_text_from_pdf(file: UploadFile) -> str:
                 doc.close()
                 return fitz_text
 
-            ocr_text = ""
-            for page in doc:
-                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
-                mode = "RGB" if pix.n < 4 else "RGBA"
-                image = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
-                ocr_text += pytesseract.image_to_string(image)
-            doc.close()
-            if ocr_text.strip():
-                return ocr_text
+            if ocr_available():
+                ocr_text = ""
+                for page in doc:
+                    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+                    mode = "RGB" if pix.n < 4 else "RGBA"
+                    image = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
+                    ocr_text += pytesseract.image_to_string(image)
+                doc.close()
+                if ocr_text.strip():
+                    return ocr_text
+            else:
+                doc.close()
 
-        # Fallback to OCR for scanned/image-only PDFs when pdf2image is available.
-        if convert_from_path is not None:
+        # Fallback to OCR for scanned/image-only PDFs when both tools are available.
+        if convert_from_path is not None and ocr_available():
             try:
                 pages = convert_from_path(temp_path)
                 ocr_text = ""
@@ -99,6 +127,16 @@ def extract_text_from_pdf(file: UploadFile) -> str:
                     return ocr_text
             except Exception:
                 pass
+
+        if not ocr_available():
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "This PDF appears to be image-only/scanned and OCR is unavailable on this deployment "
+                    "because Tesseract is not installed. Upload a text-based PDF/DOCX, or deploy backend "
+                    "on a host with Tesseract installed."
+                ),
+            )
 
         raise HTTPException(
             status_code=400,
@@ -112,21 +150,23 @@ def extract_text_from_pdf(file: UploadFile) -> str:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"PDF processing failed: {e}")
     finally:
-        if os.path.exists(temp_path):
+        if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
 
 
 def extract_text_from_docx(file: UploadFile) -> str:
-    temp_path = f"temp_{file.filename}"
+    temp_path = None
     try:
-        with open(temp_path, "wb") as f:
-            f.write(file.file.read())
+        suffix = os.path.splitext(file.filename or "upload.docx")[1] or ".docx"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_file.write(file.file.read())
+            temp_path = temp_file.name
         doc = docx.Document(temp_path)
         return "\n".join([para.text for para in doc.paragraphs])
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"DOCX processing failed: {e}")
     finally:
-        if os.path.exists(temp_path):
+        if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
 
 
