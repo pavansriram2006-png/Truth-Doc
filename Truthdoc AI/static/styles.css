@@ -44,6 +44,23 @@ body {
     overflow-y: auto;
 }
 
+.sidebar::-webkit-scrollbar,
+.history-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.history-list::-webkit-scrollbar-thumb {
+    background: rgba(92, 130, 181, 0.45);
+    border-radius: 999px;
+    border: 2px solid rgba(6, 16, 31, 0.65);
+}
+
+.sidebar::-webkit-scrollbar-track,
+.history-list::-webkit-scrollbar-track {
+    background: rgba(9, 20, 37, 0.55);
+}
+
 .brand {
     display: flex;
     align-items: center;
