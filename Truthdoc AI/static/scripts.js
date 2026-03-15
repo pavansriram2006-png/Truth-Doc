@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-link');
     const pages = document.querySelectorAll('.page');
 
-    const backendUrl = (window.BACKEND_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
+    const backendUrl = ((window.BACKEND_URL ?? 'http://127.0.0.1:8000')).replace(/\/$/, '');
     const historyKey = 'truthdoc-history';
 
     const fileInput = document.getElementById('fileInput');
