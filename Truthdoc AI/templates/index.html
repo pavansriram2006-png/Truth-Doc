@@ -81,7 +81,15 @@
                     <div class="status-text">Ready</div>
                     <div class="status-chip">Enter message</div>
                 </div>
-                <ul id="smsReasons" class="reasons"></ul>
+
+                <div class="confidence-card" id="smsConfidenceCard">
+                    <h3>CONFIDENCE SCORE</h3>
+                    <div class="meter-wrap">
+                        <div class="meter" id="smsMeter" style="--risk: 0"></div>
+                        <div class="meter-label" id="smsRiskLabel">0%</div>
+                    </div>
+                    <ul id="smsReasons" class="reasons"></ul>
+                </div>
             </section>
 
             <section id="link" class="page">
@@ -98,7 +106,15 @@
                     <div class="status-text">Ready</div>
                     <div class="status-chip">Enter URL</div>
                 </div>
-                <ul id="linkReasons" class="reasons"></ul>
+
+                <div class="confidence-card" id="linkConfidenceCard">
+                    <h3>CONFIDENCE SCORE</h3>
+                    <div class="meter-wrap">
+                        <div class="meter" id="linkMeter" style="--risk: 0"></div>
+                        <div class="meter-label" id="linkRiskLabel">0%</div>
+                    </div>
+                    <ul id="linkReasons" class="reasons"></ul>
+                </div>
             </section>
 
             <section id="history" class="page">

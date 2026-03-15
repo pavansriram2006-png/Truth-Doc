@@ -18,12 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const verifySmsBtn = document.getElementById('verifySmsBtn');
     const verifyAnotherSmsBtn = document.getElementById('verifyAnotherSmsBtn');
     const smsResultCard = document.getElementById('sms-result-card');
+    const smsMeter = document.getElementById('smsMeter');
+    const smsRiskLabel = document.getElementById('smsRiskLabel');
     const smsReasons = document.getElementById('smsReasons');
 
     const linkInput = document.getElementById('linkInput');
     const verifyLinkBtn = document.getElementById('verifyLinkBtn');
     const verifyAnotherLinkBtn = document.getElementById('verifyAnotherLinkBtn');
     const linkResultCard = document.getElementById('link-result-card');
+    const linkMeter = document.getElementById('linkMeter');
+    const linkRiskLabel = document.getElementById('linkRiskLabel');
     const linkReasons = document.getElementById('linkReasons');
 
     const historyList = document.getElementById('historyList');
@@ -85,10 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             renderStatusCard(docResultCard, data.status, data.risk_score, data.reason_for_flag);
             renderReasons(docReasons, data.reason_for_flag);
-            updateMeter(data.risk_score);
+            updateMeter(docMeter, docRiskLabel, data.risk_score);
             addHistory('Document', file.name, data.status, data.risk_score, data.reason_for_flag || []);
         } catch (error) {
             renderError(docResultCard, error.message || 'Failed to verify document.');
+            updateMeter(docMeter, docRiskLabel, 0);
         }
     }
 
@@ -99,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setLoading(smsResultCard, 'Analyzing SMS');
         smsReasons.innerHTML = '';
+        updateMeter(smsMeter, smsRiskLabel, 0);
         try {
             const data = await verifySms(text);
             if (!data.status) {
@@ -106,9 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             renderStatusCard(smsResultCard, data.status, data.risk_score, data.reason_for_flag);
             renderReasons(smsReasons, data.reason_for_flag);
+            updateMeter(smsMeter, smsRiskLabel, data.risk_score);
             addHistory('SMS', truncate(text, 64), data.status, data.risk_score, data.reason_for_flag || []);
         } catch (error) {
             renderError(smsResultCard, error.message || 'Failed to verify SMS.');
+            updateMeter(smsMeter, smsRiskLabel, 0);
         }
     }
 
@@ -119,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setLoading(linkResultCard, 'Analyzing Link');
         linkReasons.innerHTML = '';
+        updateMeter(linkMeter, linkRiskLabel, 0);
         try {
             const data = await verifyLink(url.trim());
             if (!data.status) {
@@ -126,9 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             renderStatusCard(linkResultCard, data.status, data.risk_score, data.reason_for_flag);
             renderReasons(linkReasons, data.reason_for_flag);
+            updateMeter(linkMeter, linkRiskLabel, data.risk_score);
             addHistory('Link', truncate(url.trim(), 64), data.status, data.risk_score, data.reason_for_flag || []);
         } catch (error) {
             renderError(linkResultCard, error.message || 'Failed to verify link.');
+            updateMeter(linkMeter, linkRiskLabel, 0);
         }
     }
 
@@ -136,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.value = '';
         fileName.textContent = 'No file selected';
         docReasons.innerHTML = '';
-        updateMeter(0);
+        updateMeter(docMeter, docRiskLabel, 0);
         docResultCard.className = 'status-card idle';
         docResultCard.innerHTML = `
             <div class="status-icon"><i class="fas fa-shield"></i></div>
@@ -148,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetSmsView() {
         smsInput.value = '';
         smsReasons.innerHTML = '';
+        updateMeter(smsMeter, smsRiskLabel, 0);
         smsResultCard.className = 'status-card idle';
         smsResultCard.innerHTML = `
             <div class="status-icon"><i class="fas fa-shield"></i></div>
@@ -159,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetLinkView() {
         linkInput.value = '';
         linkReasons.innerHTML = '';
+        updateMeter(linkMeter, linkRiskLabel, 0);
         linkResultCard.className = 'status-card idle';
         linkResultCard.innerHTML = `
             <div class="status-icon"><i class="fas fa-shield"></i></div>
@@ -252,10 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function updateMeter(risk) {
+    function updateMeter(meter, label, risk) {
+        if (!meter || !label) {
+            return;
+        }
         const value = Math.max(0, Math.min(100, Number(risk) || 0));
-        docMeter.style.setProperty('--risk', value);
-        docRiskLabel.textContent = `${value}%`;
+        meter.style.setProperty('--risk', value);
+        label.textContent = `${value}%`;
     }
 
     function addHistory(type, target, status, risk, reasons) {
