@@ -65,3 +65,37 @@ Set-Location ".\Truthdoc AI"
 - Default backend URL is `http://127.0.0.1:8000`.
 - Frontend is served at `http://127.0.0.1:8080`.
 - If a PDF has no extractable text and OCR cannot read it, convert to a clearer image/PDF or DOCX and retry.
+
+## Deploy OCR Backend On Render
+
+Use this when you want image/scanned PDF OCR to work from all devices.
+
+Files added for deployment:
+
+- `Dockerfile`
+- `requirements-server.txt`
+- `render.yaml`
+
+### Steps
+
+1. Push your latest code to GitHub.
+2. In Render, create a new **Blueprint** and connect this repository.
+3. Render will use `render.yaml` and build from `Dockerfile`.
+4. After deploy, copy your Render backend URL (for example `https://truthdoc-ocr-backend.onrender.com`).
+5. In Vercel project settings, add environment variable:
+
+```text
+BACKEND_URL=https://your-render-backend.onrender.com
+```
+
+6. Redeploy Vercel.
+
+### CORS
+
+- Backend CORS is controlled by `CORS_ALLOWED_ORIGINS`.
+- Default includes `https://truth-doc.vercel.app` and localhost origins.
+- To customize, set comma-separated origins in Render environment:
+
+```text
+CORS_ALLOWED_ORIGINS=https://truth-doc.vercel.app,https://your-other-frontend.vercel.app
+```

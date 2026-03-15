@@ -46,14 +46,25 @@ def ocr_available() -> bool:
 
 app = FastAPI(title="TruthDoc AI", description="Smart Document Fraud Detection API")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+
+def get_allowed_origins() -> List[str]:
+    default_origins = [
         "http://127.0.0.1:8080",
         "http://localhost:8080",
         "http://127.0.0.1:3000",
         "http://localhost:3000",
-    ],
+        "https://truth-doc.vercel.app",
+    ]
+    env_value = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+    if not env_value:
+        return default_origins
+
+    configured = [origin.strip() for origin in env_value.split(",") if origin.strip()]
+    return configured or default_origins
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_allowed_origins(),
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
