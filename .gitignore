@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+.venv312/
+venv/
+
+# VS Code
+.vscode/
+
+# Build and cache
+build/
+dist/
+*.egg-info/
+
+# Runtime/temp artifacts
+temp_*.pdf
+temp_*.docx
+temp_*.png
+tmp_*.py
+tmp_*.png
+
+# OS files
+.DS_Store
+Thumbs.db

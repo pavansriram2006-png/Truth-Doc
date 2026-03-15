@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthDoc AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="brand-text">TruthDoc AI</div>
+            </div>
+            <div class="nav-group-title">VERIFY</div>
+            <nav class="side-nav">
+                <a href="#" class="nav-link active" data-target="document"><i class="fas fa-file-lines"></i><span>Document Upload</span></a>
+                <a href="#" class="nav-link" data-target="sms"><i class="far fa-message"></i><span>Text / SMS</span></a>
+                <a href="#" class="nav-link" data-target="link"><i class="fas fa-link"></i><span>Link Check</span></a>
+            </nav>
+            <div class="nav-group-title">LOGS</div>
+            <nav class="side-nav">
+                <a href="#" class="nav-link" data-target="history"><i class="far fa-clock"></i><span>History</span></a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <section id="document" class="page active">
+                <h1 class="page-title">Document Verification</h1>
+                <p class="page-subtitle">Upload an ID, invoice, certificate, or any document - images or PDFs accepted.</p>
+
+                <div class="input-band">
+                    <label class="file-pill" for="fileInput" id="filePill">
+                        <i class="far fa-file"></i>
+                        <span id="fileName">No file selected</span>
+                        <span class="file-type">Document</span>
+                    </label>
+                    <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.docx" hidden>
+                    <button class="cta" id="verifyDocBtn">Verify Now</button>
+                </div>
+
+                <div class="result-head">
+                    <h2>Analysis Result</h2>
+                    <button class="ghost" id="verifyAnotherDocBtn"><i class="fas fa-rotate-right"></i> Verify Another</button>
+                </div>
+
+                <div id="doc-result-card" class="status-card idle">
+                    <div class="status-icon"><i class="fas fa-shield"></i></div>
+                    <div class="status-text">Ready</div>
+                    <div class="status-chip">Upload a file</div>
+                </div>
+
+                <div class="confidence-card" id="docConfidenceCard">
+                    <h3>CONFIDENCE SCORE</h3>
+                    <div class="meter-wrap">
+                        <div class="meter" id="docMeter" style="--risk: 0"></div>
+                        <div class="meter-label" id="docRiskLabel">0%</div>
+                    </div>
+                    <ul id="docReasons" class="reasons"></ul>
+                </div>
+            </section>
+
+            <section id="sms" class="page">
+                <h1 class="page-title">Text / SMS Verification</h1>
+                <p class="page-subtitle">Paste the message content to detect urgency patterns, phishing language, and payment scams.</p>
+                <textarea id="smsInput" class="text-box" placeholder="Paste SMS or internship message here..."></textarea>
+                <div class="action-row">
+                    <button class="cta" id="verifySmsBtn">Verify SMS</button>
+                    <button class="ghost" id="verifyAnotherSmsBtn"><i class="fas fa-rotate-right"></i> Clear</button>
+                </div>
+
+                <div id="sms-result-card" class="status-card idle">
+                    <div class="status-icon"><i class="fas fa-shield"></i></div>
+                    <div class="status-text">Ready</div>
+                    <div class="status-chip">Enter message</div>
+                </div>
+                <ul id="smsReasons" class="reasons"></ul>
+            </section>
+
+            <section id="link" class="page">
+                <h1 class="page-title">Link Check</h1>
+                <p class="page-subtitle">Submit any URL to quickly inspect suspicious patterns, risky hosts, and phishing-like indicators.</p>
+                <input id="linkInput" class="url-input" type="url" placeholder="https://example.com/login">
+                <div class="action-row">
+                    <button class="cta" id="verifyLinkBtn">Check Link</button>
+                    <button class="ghost" id="verifyAnotherLinkBtn"><i class="fas fa-rotate-right"></i> Clear</button>
+                </div>
+
+                <div id="link-result-card" class="status-card idle">
+                    <div class="status-icon"><i class="fas fa-shield"></i></div>
+                    <div class="status-text">Ready</div>
+                    <div class="status-chip">Enter URL</div>
+                </div>
+                <ul id="linkReasons" class="reasons"></ul>
+            </section>
+
+            <section id="history" class="page">
+                <h1 class="page-title">History</h1>
+                <p class="page-subtitle">Recent checks from this browser session.</p>
+                <div class="history-actions">
+                    <button class="ghost" id="clearHistoryBtn"><i class="fas fa-trash"></i> Clear History</button>
+                </div>
+                <div id="historyList" class="history-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>window.BACKEND_URL = "{{ backend_url }}";</script>
+    <script src="/static/scripts.js"></script>
+</body>
+</html>
